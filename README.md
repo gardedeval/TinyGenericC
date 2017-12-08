@@ -16,13 +16,13 @@ THREAD-UNSAFE EVEN WITH LOCKS PLEASE DO NOT USE IT IN PRODUCTION.
 
 # Index
 Currently undergoing development:
-1. vector(T): Dynamic array. Translation-unit-free.
-2. vector_view(T): Like vector but using a static memory location. Translation-unit-free.
-3. linked_list(T) and singly_linked_list(T): (Type-unsafe) Linked List. Translation-unit-free.
+1. vector(T): Dynamic array. Header-only.
+2. vector_view(T): Like vector but using a static memory location. Header-only.
+3. linked_list(T) and singly_linked_list(T): (Type-unsafe) Linked List. Header-only.
 4. hash_table(K, V): Hash table using FNV-1a and separate chaining with list head cells. Custom hash has to be done by user.
 5. binary_tree(T): Binary tree (WIP)
-6. ref_count(T): Manual reference counting (WIP)
-7. mempool: Memory pool (WIP)
+6. ref_count(T): Manual reference counting (WIP). Header-only.
+7. mempool: Memory pool (WIP). Header-only.
 8. tagged_mem: Linear memory with a pre-defined size (just like [sds](https://github.com/antirez/sds)) (WIP)
 
 A toy JSON library is also included here to demonstrate TinyGenericC. However the deserializer part is not started (I'm still learning parser sorry).
