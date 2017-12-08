@@ -1,5 +1,5 @@
 # TinyGenericC
-Tiny C Libraries that exploits undefined behaviors to achieve generic programming
+Tiny C Libraries that exploits undefined behaviors to achieve generic programming. Requires C99 support.
 
 # WARNING
 You are summoning the horrific nasal demons. Multiple nasal demons. You should never recall them unless you are steer-clear of knowing what you are doing. 
