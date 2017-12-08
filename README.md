@@ -16,20 +16,26 @@ THREAD-UNSAFE EVEN WITH LOCKS PLEASE DO NOT USE IT IN PRODUCTION.
 
 # Index
 Currently undergoing development:
-1. vector(T): Dynamic array. Header-only.
-2. vector_view(T): Like vector but using a static memory location. Header-only.
-3. linked_list(T) and singly_linked_list(T): (Type-unsafe) Linked List. Header-only.
-4. hash_table(K, V): Hash table using FNV-1a and separate chaining with list head cells. Custom hash has to be done by user.
-5. binary_tree(T): Binary tree (WIP)
-6. ref_count(T): Manual reference counting (WIP). Header-only.
-7. mempool: Memory pool (WIP). Header-only.
-8. tagged_mem: Linear memory with a pre-defined size (just like [sds](https://github.com/antirez/sds)) (WIP)
+1. [vector(T)](https://github.com/stevefan1999/TinyGenericC/blob/master/include/vector.h): Dynamic array. Header-only.
+2. [vector_view(T)](https://github.com/stevefan1999/TinyGenericC/blob/master/include/vector_view.h): Like vector but using a static memory location. Header-only.
+3. [linked_list(T) and singly_linked_list(T)](https://github.com/stevefan1999/TinyGenericC/blob/master/include/linked_list.h): (Type-unsafe) Linked List. Header-only.
+4. [hash_table(K, V)](https://github.com/stevefan1999/TinyGenericC/blob/master/include/hash_table.h): Hash table using FNV-1a and separate chaining with list head cells. Custom hash has to be done by user.
+5. [binary_tree(T)](https://github.com/stevefan1999/TinyGenericC/blob/master/include/binary_tree.h): Binary tree (WIP)
+6. [ref_count(T)](https://github.com/stevefan1999/TinyGenericC/blob/master/include/ref_count.h): Manual reference counting (WIP). Header-only.
+7. [mempool](https://github.com/stevefan1999/TinyGenericC/blob/master/include/mempool.h): Memory pool (WIP). Hopefully header-only.
+8. [tagged_mem](https://github.com/stevefan1999/TinyGenericC/blob/master/include/tagged_mem.h): Linear memory with a pre-defined size (just like [sds](https://github.com/antirez/sds)) (WIP)
 
 A toy JSON library is also included here to demonstrate TinyGenericC. However the deserializer part is not started (I'm still learning parser sorry).
 
 # Note
 Unfortunately, this is not truly-generic programming. Instead, it's more like Java-ish type erasure that defined a certain bound on object/struct size beforehand, and the program is pretending to not writing beyond the memory by asserting the size in run-time. 
 
-The sentinel objects to operate on the generic object (e.g. iterator, index) however, is user-defined, and so highly dangerous. 
+The sentinel objects to operate on the generic object (e.g. iterator, index) however, is user-defined, and so highly dangerous since type-aliasings are most likely or unintentionally violated. 
 
-Types are not retified and validated. You are responsible for correcting the types in case you shot yourself in the foot.
+Therefore, types are not retified and validated. You are responsible for correcting the types in case you shot yourself in the foot.
+
+# TODO
+1. Implement mempool first to support a memory allocator (useful for MCUs)
+2. Rewrite all containers to utilize mempool
+3. Make vector_view able to use local buffer
+4. Fix the god-damn documentation!
