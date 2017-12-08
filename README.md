@@ -1,8 +1,16 @@
 # TinyGenericC
 Tiny C Libraries that exploits undefined behaviors to achieve generic programming. Requires C99 support.
 
+Inspired by [rxi/map](https://github.com/rxi/map) and [rxi/vec](https://github.com/rxi/vec) and [attractivechaos/klib](https://github.com/attractivechaos/klib)
+
 # WARNING
 You are summoning the horrific nasal demons. Multiple nasal demons. You should never recall them unless you are steer-clear of knowing what you are doing. 
+
+Compile-time type checking is practically disabled here by the side effect of pointer rewiring. I'm planning to import static_assert but it didn't work out on MSVC.
+
+Documents and comments are not completed. 
+
+THREAD-UNSAFE EVEN WITH LOCKS PLEASE DO NOT USE IT IN PRODUCTION.
 
 Currently undergoing development:
 1. vector(T): Dynamic array. Translation-unit-free.
@@ -19,6 +27,6 @@ A toy JSON library is also included here to demonstrate TinyGenericC. However th
 # Note
 Unfortunately, this is not truly-generic programming. Instead, it's more like Java-ish type erasure that defined a certain bound on object/struct size beforehand, and the program is pretending to not writing beyond the memory by asserting the size in run-time. 
 
-The object to operate on the generic object (e.g. iterator, index) however, is user-defined, and so highly dangerous. 
+The sentinel objects to operate on the generic object (e.g. iterator, index) however, is user-defined, and so highly dangerous. 
 
-Compile-time type checking is practically disabled here by the side effect of pointer rewiring. Types are not retified and validated. You are responsible for correcting the types in case you shot yourself in the foot.
+Types are not retified and validated. You are responsible for correcting the types in case you shot yourself in the foot.

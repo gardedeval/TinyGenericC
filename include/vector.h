@@ -195,14 +195,13 @@ size_t __vector_expand_to_nearest_2n(size_t n);
 
 #define vector_slice(v, dest, start, end) \
     do { \
-        size_t n, cb; \
         common_ensure_message(vec_type_sizeof(dest) == vec_type_sizeof(src), "underlying size unmatch"); \
         common_ensure(vec_valid(v) && (dest) != NULL); \
         common_ensure ((start) > 0 && (end) > 0); \
         common_ensure ((start) < (end)); \
         common_ensure ((end) < vec_index(v) && (start) < vec_index(v)); \
-        n = vec_expand_to_2n((end) - (start)); /* 2^n padded! */ \
-        cb = ((end) - (start)) * vec_type_sizeof(v); \
+        size_t n = vec_expand_to_2n((end) - (start)); /* 2^n padded! */ \
+        size_t cb = ((end) - (start)) * vec_type_sizeof(v); \
         common_memset((v), 0, vec_sizeof(v)); \
         vec_index(dest) = 0; \
         vec_cap(dest) = n; \

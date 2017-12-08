@@ -8,15 +8,12 @@ const uint32_t fnv1a_offset_basis = 2166136261;
 
 // fnv1a, 32-bit variant.
 hash_table_hash_t __hash_table_hash(char *mem, size_t len) {
-    size_t i;
-    uint32_t hash;
-
     if (mem == NULL) {
         return 0;
     }
 
-    hash = fnv1a_offset_basis;
-    for (i = 0; i < len; i++) {
+    uint32_t hash = fnv1a_offset_basis;
+    for (size_t i = 0; i < len; i++) {
         hash ^= mem[i];
         hash *= fnv1a_prime;
     }
@@ -24,14 +21,11 @@ hash_table_hash_t __hash_table_hash(char *mem, size_t len) {
 }
 
 void __hash_table_destroy(hash_table_opaque_buckets *buckets) {
-    size_t i;
-    sll_opaque *it;
-
     if (buckets == NULL) return;
     
-    for (i = 0; i < vec_cap(buckets); i++) { // iterate the buckets
+    for (size_t i = 0; i < vec_cap(buckets); i++) { // iterate the buckets
         // iterate the bucket heads
-        it = vec_get(buckets, i);
+        sll_opaque *it = vec_get(buckets, i);
         if (it != NULL) { // if it is a valid list head
             sll_destroy_all(it); // kill them all one by one
         }
@@ -39,18 +33,14 @@ void __hash_table_destroy(hash_table_opaque_buckets *buckets) {
 }
 
 sll_opaque *__hash_table_find_best_free_slot(size_t idx, hash_table_hash_t hash, hash_table_opaque_buckets *buckets, ht_ret_code *err) {
-    size_t n, cap;
-    uint32_t chainSize;
-    sll_opaque *it, *prev;
-    cap = vec_cap(buckets);
+    if (buckets == NULL || err == NULL) return NULL;
+    
+    const size_t cap = vec_cap(buckets);
     const size_t k = HASH_SEPARATE_CHAIN_MAXLINKS * cap; // pseudo-size
 
-    if (buckets == NULL || err == NULL) return NULL;
-
-    n = 0;
+    size_t n = 0;
     for (; idx < cap; idx++) { // iterate the buckets
-        chainSize = 0;
-        it = vec_get(buckets, idx);
+        sll_opaque *it = vec_get(buckets, idx);
 
         if (it == NULL) { // empty head
             *err = EMPTY_NODE;
@@ -58,6 +48,8 @@ sll_opaque *__hash_table_find_best_free_slot(size_t idx, hash_table_hash_t hash,
         }
 
         // doubly linked list emulation
+        sll_opaque *prev;
+        uint32_t chainSize = 0;
         for (prev = it; ; n++, ++chainSize, prev = it, it = it->next) {
             if (prev != NULL) { 
                 if (*(uint32_t *)prev->value == hash) {
@@ -86,21 +78,16 @@ sll_opaque *__hash_table_find_best_free_slot(size_t idx, hash_table_hash_t hash,
 }
 
 ht_it_ret __hash_table_find_entry_hash(hash_table_hash_t hash, hash_table_opaque_buckets *buckets) {
-    size_t idx, cap, i;
-    sll_opaque *prev, *it;
     ht_it_ret ret; // node context
-
     common_memset(&ret, 0, sizeof(ht_it_ret)); // empty the context
 
     if (buckets == NULL) return ret;
 
-    cap = vec_cap(buckets);
-    idx = hash % cap;
-
-    for (; idx < cap; idx++) { // probe start
-        i = 0;
-        prev = NULL; // doubly linked list simulation
-        for (it = vec_get(buckets, idx); it != NULL; i++, prev = it, it = it->next) {
+    const size_t cap = vec_cap(buckets);
+    for (size_t idx = hash % cap; idx < cap; idx++) { // probe start
+        size_t i = 0;
+        sll_opaque *prev = NULL; // doubly linked list simulation
+        for (sll_opaque *it = vec_get(buckets, idx); it != NULL; i++, prev = it, it = it->next) {
             if (*(uint32_t *)it->value == hash) {
                 ret.it = it;
                 ret.prev = prev;
@@ -123,24 +110,22 @@ static void __hash_table_resize(size_t entrySize, hash_table_opaque_buckets *buc
     *      -> recursive call to __hash_table_put_entry
     * 3. put the current entry again
     */
-    sll_opaque *it, *it1;
-    hash_table_opaque_buckets snapshot; // the previous view of the buckets, before expansion
-    size_t i;
 
     if (buckets == NULL) return;
 
+    hash_table_opaque_buckets snapshot; // the previous view of the buckets, before expansion
     vec_clone(&snapshot, buckets); // clone the buckets for a snapshot
 
-    vec_expand(buckets); // we're lucky here, we have them pointers-sized
+    vec_expand(buckets); // we're lucky here, we have them entries pointer-sized
     vec_clear_mem(buckets); // erase all old bucket heads
 
-    for (i = 0; i < vec_cap(&snapshot); i++) { // iterate the snapshot
-        it = it1 = vec_get(&snapshot, i);
+    for (size_t i = 0; i < vec_cap(&snapshot); i++) { // iterate the snapshot
+        sll_opaque *it = vec_get(&snapshot, i);
         if (it != NULL) { // if it is not an empty head
-            for (; it1 != NULL; it1 = it1->next) { // loop the list
+            for (sll_opaque *it1 = it; it1 != NULL; it1 = it1->next) { // loop the list
                 __hash_table_put_entry((char *)&it1->value, entrySize, buckets); // linear value-copied rehash
             }
-            sll_destroy_all(it); // destroy all the nodes
+            sll_destroy_all(it); // destroy all the old nodes
         }
     }
 
@@ -148,16 +133,13 @@ static void __hash_table_resize(size_t entrySize, hash_table_opaque_buckets *buc
 }
 
 ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, hash_table_opaque_buckets *buckets) {
-    hash_table_hash_t hash;
-    size_t idx;
-    sll_opaque *slot, **slotRef;
-    ht_ret_code err;
-
     if (entryMem == NULL || buckets == NULL) return EMPTY_NODE;
 
-    hash = *(uint32_t *)entryMem;
-    idx = hash % vec_cap(buckets);
-    slot = __hash_table_find_best_free_slot(idx, hash, buckets, &err);
+    const hash_table_hash_t hash = *(uint32_t *)entryMem;
+    const size_t idx = hash % vec_cap(buckets);
+
+    ht_ret_code err;
+    sll_opaque *slot = __hash_table_find_best_free_slot(idx, hash, buckets, &err);
 
     if (err == HASH_EXISTS) return HASH_EXISTS; // what
 
@@ -166,7 +148,7 @@ ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, hash_table_
         return __hash_table_put_entry(entryMem, entrySize, buckets); // re-install the entry
     }
 
-    slotRef = err == EMPTY_NODE ? (sll_opaque **)slot : &slot->next;
+    sll_opaque **slotRef = err == EMPTY_NODE ? (sll_opaque **)slot : &slot->next;
 
     if (slotRef != NULL) {
         *slotRef = sll_opaque_make(entrySize); // create the node
@@ -179,7 +161,7 @@ ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, hash_table_
 
 json_context *json_make(json_context *j) {
     if (j == NULL) return NULL;
-    common_memset((j), 0, json_sizeof(j));
+    common_memset(j, 0, json_sizeof(j));
     json_type(j) = JSON_NULL;
     return j;
 }
@@ -246,37 +228,32 @@ json_context *json_array_pop(json_context *arr) {
 }
 
 void json_object_put(json_context *obj, const char *key, json_context *j) {
-    char *managedKey;
     if (obj == NULL || key == NULL || j == NULL || json_type(obj) != JSON_OBJECT) {
         return;
     }
     if (json_object_get(obj, key) != NULL) return;
 
-    managedKey = common_strdup(key);
+    char *managedKey = common_strdup(key);
     common_ensure_message(managedKey != NULL, "Out of memory");
 
     ht_put_str(json_object(obj), managedKey, j);
 }
 
 json_context *json_object_get(json_context *obj, const char *key) {
-    ht_entry_t(const char *, json_context *) *pair;
-
     if (obj == NULL || key == NULL || json_type(obj) != JSON_OBJECT) {
         return NULL;
     }
 
-    pair = ht_get_str(json_object(obj), key);
+    ht_entry_t(const char *, json_context *) *pair = ht_get_str(json_object(obj), key);
     return pair != NULL ? pair->value : NULL;
 }
 
 void json_object_delete(json_context *obj, const char *key) {
-    json_context *j;
-
     if (obj == NULL || key == NULL || json_type(obj) != JSON_OBJECT) {
         return;
     }
 
-    j = json_object_get(obj, key);
+    json_context *j = json_object_get(obj, key);
 
     if (j != NULL) {
         json_destroy(j);
@@ -295,7 +272,7 @@ json_serialize_ret json_serialize(json_context *j, char *buf, int len, size_t *w
             // null
 
             const char *str = "null";
-            size_t strLen = common_strlen(str);
+            const size_t strLen = common_strlen(str);
             if ((int)strLen > len) return SERIAL_NOMEM;
             if (written != NULL) *written = strLen;
             common_memcpy(buf, str, strLen);
@@ -304,7 +281,7 @@ json_serialize_ret json_serialize(json_context *j, char *buf, int len, size_t *w
         case JSON_BOOLEAN:
         {
             const char *str = json_boolean(j) ? "true" : "false";
-            size_t strLen = common_strlen(str);
+            const size_t strLen = common_strlen(str);
             if ((int)strLen > len) return SERIAL_NOMEM;
             if (written != NULL) *written = strLen;
             common_memcpy(buf, str, strLen);
@@ -313,7 +290,7 @@ json_serialize_ret json_serialize(json_context *j, char *buf, int len, size_t *w
         case JSON_NUMBER:
         {
             // number
-            size_t ret = snprintf(buf, len, "%g", json_number(j));
+            const size_t ret = snprintf(buf, len, "%g", json_number(j));
             if (ret < 1) return SERIAL_INVALID;
             if (written != NULL) *written = ret;
         }
@@ -323,9 +300,9 @@ json_serialize_ret json_serialize(json_context *j, char *buf, int len, size_t *w
             // " ... "
 
             const char *str = json_string(j).mem;
-            size_t strLen = json_string(j).len;
+            const size_t strLen = json_string(j).len;
             // first quote + string length + last quote
-            if ((1 + (int)strLen + 1) > len) return SERIAL_NOMEM;
+            if (1 + (int)strLen + 1 > len) return SERIAL_NOMEM;
             if (written != NULL) *written = 1 + strLen + 1;
 
             size_t i = 0;
@@ -355,8 +332,8 @@ json_serialize_ret json_serialize(json_context *j, char *buf, int len, size_t *w
                     } else return ret;
 
                     // not the last element
-                    if ((it + 1) < vec_index(json_array(j))) {
-                        if ((i + 2) < (size_t) len) {
+                    if (it + 1 < vec_index(json_array(j))) {
+                        if (i + 2 < (size_t) len) {
                             buf[bufLen--, ++i] = ','; // append a comma
                             buf[bufLen--, ++i] = ' '; // and a space
                         } else return SERIAL_NOMEM;
@@ -389,12 +366,12 @@ json_serialize_ret json_serialize(json_context *j, char *buf, int len, size_t *w
             size_t e = 0;
             ht_for_each(json_object(j), bucket, head, it) {
                 const char *str = it->value.key;
-                size_t strLen = strlen(str);
+                const size_t strLen = strlen(str);
 
                 if (str == NULL) return SERIAL_INVALID;
 
                 // first quote + string length + last quote
-                if ((1 + (int) strLen + 1) > len) return SERIAL_NOMEM;
+                if (1 + (int) strLen + 1 > len) return SERIAL_NOMEM;
 
                 buf[bufLen--, i++] = '"';
 
@@ -415,8 +392,8 @@ json_serialize_ret json_serialize(json_context *j, char *buf, int len, size_t *w
                 } else return ret;
 
                 // not the last element
-                if ((e + 1) < n) {
-                    if ((i + 2) < (size_t) len) {
+                if (e + 1 < n) {
+                    if (i + 2 < (size_t) len) {
                         buf[bufLen--, ++i] = ',';
                         buf[bufLen--, ++i] = ' ';
                     } else return SERIAL_NOMEM;
