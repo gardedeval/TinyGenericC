@@ -244,7 +244,9 @@ json_context *json_object_get(json_context *obj, const char *key) {
         return NULL;
     }
 
-    ht_entry_t(const char *, json_context *) *pair = ht_get_str(json_object(obj), key);
+    ht_entry_t(const char *, json_context *) *pair;
+    
+    common_ptr_rv_to_lv(pair) = ht_get_str(json_object(obj), key);
     return pair != NULL ? pair->value : NULL;
 }
 
@@ -328,7 +330,7 @@ json_serialize_ret json_serialize(json_context *j, char *buf, int len, size_t *w
                     json_serialize_ret ret = json_serialize(*value, buf + i, bufLen, &written0);
                     if (ret == SERIAL_OK) {
                         i += written0 - 1;
-                        bufLen -= written0;
+                        bufLen -= (int)written0;
                     } else return ret;
 
                     // not the last element
@@ -360,7 +362,7 @@ json_serialize_ret json_serialize(json_context *j, char *buf, int len, size_t *w
             ht_for_each(json_object(j), bucket, head, it) n++;
 
             size_t i = 0;
-            size_t bufLen = len;
+            int bufLen = len;
             buf[--bufLen, i++] = '{';
 
             size_t e = 0;
@@ -375,9 +377,9 @@ json_serialize_ret json_serialize(json_context *j, char *buf, int len, size_t *w
 
                 buf[bufLen--, i++] = '"';
 
-                common_memcpy(buf + i, str, strLen);
-                i += strLen - 1;
-                bufLen -= strLen;
+                common_memcpy(buf + i, str, (int) strLen);
+                i += (int) strLen - 1;
+                bufLen -= (int) strLen;
 
                 buf[bufLen--, ++i] = '"';
                 buf[bufLen--, ++i] = ':';
@@ -388,7 +390,7 @@ json_serialize_ret json_serialize(json_context *j, char *buf, int len, size_t *w
                 json_serialize_ret ret = json_serialize(it->value.value, buf + i, bufLen, &written0);
                 if (ret == SERIAL_OK) {
                     i += written0 - 1;
-                    bufLen -= written0;
+                    bufLen -= (int) written0;
                 } else return ret;
 
                 // not the last element
@@ -482,15 +484,19 @@ tagged_mem_t *__tagged_mem_resize(const tagged_mem_t *mem, const size_t newLen) 
 
 size_t __vector_expand_to_nearest_2n(size_t n) {
     n--;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    if (sizeof(size_t) == sizeof(uint64_t)) {
-        n |= n >> 32;
+    n |= n >> 1; // size_t = 0.25, 2-bit
+    n |= n >> 2; // size_t = 0.5, 4-bit
+    n |= n >> 4; // size_t = 1, 8-bit
+    n |= n >> 8; // size_t = 2, 16-bit
+    n |= n >> 16; // size_t = 4, 32-bit
+    // n |= n >> 32; // size_t = 8, 64-bit
+    n |= n >> 4 * sizeof(size_t); // if 32-bit then 4*4 = 16 same as above, otherwise if 64-bit then 4*8 = 32
+    
+    /*
+    // not loop unrolled? why?
+    for (size_t i = 1; i < sizeof(size_t) * CHAR_BIT; i *= 2) {
+        n |= n >> i;
     }
-
-    n++;
-    return n;
+    */
+    return ++n;
 }

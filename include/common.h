@@ -88,9 +88,20 @@
 #define common_exit exit
 #endif
 
-#define common_ensure_message(expr, msg) ( !(expr) ? common_fprintf(stderr, (msg "\n")), common_exit(0) : (void)0 )
-#define common_ensure(expr) common_ensure_message(expr, "Conditional violation, program terminated")
-#define common_ensure_nomsg(expr) ( !(expr) ? common_exit(0) : 0 )
+#ifndef common_abort
+#define common_abort abort
+#endif
 
+#if defined(DEBUG) || defined(_DEBUG)
+#define common_ensure_message(expr, msg) ( !(expr) ? common_fprintf(stderr, (msg "\n")), common_abort(0) : (void)0 )
+#else
+#define common_ensure_message(expr, msg) ( !(expr) ? common_abort() : (void)0 )
+#endif
+
+#define common_ensure(expr) common_ensure_message(expr, "Conditional violation, program terminated")
+#define common_ensure_nomsg(expr) ( !(expr) ? common_abort() : (void) 0 )
+
+#define common_ptr_rv_to_lv(ptr) *((void **) &(ptr))
+#define ptr_rtol common_ptr_rv_to_lv
 
 #endif

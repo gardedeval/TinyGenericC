@@ -1,12 +1,11 @@
 #pragma once
 
 #include "common.h"
+#include "iden_concat.h"
 
 #define LINKED_LIST_VER "0.0.1"
 
-#define linked_list_gen3(T, count) T##count
-#define linked_list_gen2(T, count) linked_list_gen3(T, count)
-#define linked_list_gen linked_list_gen2(__linked_list, __LINE__)
+#define linked_list_gen iden_concat_2(__linked_list, __LINE__)
 
 #define linked_list(T) \
     struct linked_list_gen { \
@@ -132,15 +131,15 @@ typedef struct singly_linked_list_opaque {
 #define singly_linked_list_push(l, e)\
     (\
         ( sll_next(l) != NULL ? ( \
-            sll_next(e) = sll_next(l) \
-        ) : 0 ), ( sll_next(l) = (e) ), (l)\
+            ptr_rtol(sll_next(e)) = sll_next(l) \
+        ) : 0 ), ( ptr_rtol(sll_next(l)) = (e) ), (l)\
     )
 #define sll_push singly_linked_list_push
 
 #define singly_linked_list_remove_next(l) \
     do { \
-        sll_opaque *next = sll_next(l);\
-        if (next != NULL) { \
+        sll_opaque *_next = sll_next(l);\
+        if (_next != NULL) { \
             sll_next(l) = sll_next(next); \
         } \
     } while(0)
@@ -150,9 +149,8 @@ typedef struct singly_linked_list_opaque {
 
 #define sll_destroy_all(l) \
     do {\
-        sll_opaque *_prev = NULL; \
-        sll_opaque *_it = (l); \
-        for (;; _prev = _it, _it = sll_next(_it)) { \
+        sll_opaque *_it = (void *) (l); \
+        for (sll_opaque *_prev = NULL; ;_prev = _it, _it = sll_next(_it)) { \
             if (_prev != NULL) { \
                 sll_destroy(_prev); \
             } \

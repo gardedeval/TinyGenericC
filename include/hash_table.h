@@ -3,6 +3,8 @@
 #include "common.h"
 #include "vector.h"
 #include "linked_list.h"
+#include "static_assert.h"
+#include "iden_concat.h"
 
 /* generic (weakly generic variant) hash table implementation
  * relies on undefined behaviors, padding hacks
@@ -11,21 +13,19 @@
  * granting you multiple cancers at once!
  * 
  * judging from the hacks i used,
- * i think would not work on non-x86/x64 or big-endian system,
- * but i dont have such hardware, so please test for me.
+ * i think would not work on non-x86/x64 or big-endian systems,
+ * but i don't have such hardware, so please test for me.
  * 
- * uses separate chaining.
+ * uses separate chaining with list head cell.
  * complexities:
  * space: O(n)
- * search: O(n/km) [or O(1) for amortized constant time]
+ * search: O(n/m) [or O(1) for amortized constant time]
  *   where m is the total amount of bucket
- *   and k is the maximum amount of link in a bucket (defined below)
  * insert: same as search
  * delete: same as search
  * 
  * !!! LACKS MULTITHREAD AND SECURITY SUPPORT !!!
- * !!! IT IS NOT RESISTANT TO DOS ATTACK !!
- * !!! BESIDES THERE ARE PROBABLY SOME SERIOUS FLAWS !!!
+ * !!! NOT RESISTANT TO DOS ATTACK !!
  * !!! YOU SHOULD NOT THIS IN PRODUCTION !!!
  * 
  * usage: {
@@ -77,10 +77,12 @@
 // integral type for hash table hash value
 typedef uint32_t hash_table_hash_t;
 
+#define hash_table_entry_t_gen(K, V) iden_concat_2(__hash_table_entry, __LINE__)
+
 // hash_table_entry_t, ht_entry_t:
 // struct for hash table entry
 #define hash_table_entry_t(K, V) \
-    struct { \
+    struct hash_table_entry_t_gen(K, V) { \
         hash_table_hash_t hash; /* the only non-arbitary field so I put it on top for pointer hacking */ \
         K key; \
         V value; \
@@ -88,9 +90,20 @@ typedef uint32_t hash_table_hash_t;
 
 #define ht_entry_t hash_table_entry_t
 
+// hash_table_entry_nodef_t, ht_entry_nodef_t:
+// struct for hash table entry without struct definition
+#define hash_table_entry_nodef_t(K, V) \
+    struct { \
+        hash_table_hash_t hash; /* the only non-arbitary field so I put it on top for pointer hacking */ \
+        K key; \
+        V value; \
+    } \
+
+#define ht_entry_nodef_t hash_table_entry_nodef_t
+
 // hash_table_link_entry_t, ht_link_entry_t:
 // struct for singly linked list hash table node
-#define hash_table_link_entry_t(K, V) sll_nodef_t(ht_entry_t(K, V))
+#define hash_table_link_entry_t(K, V) sll_nodef_t(ht_entry_nodef_t(K, V))
 #define ht_link_entry_t hash_table_link_entry_t
 
 // hash_table, ht_t:
@@ -247,8 +260,7 @@ ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, hash_table_
 // helper function to extract the value field from node pointer
 #define __hash_table_load_entry_reference(ht, hash) \
     ( \
-       *((void **) &(ht)->it) = &__hash_table_get_entry_hash( ht, hash ).it->value, \
-       (ht)->it \
+       ptr_rtol((ht)->it) = &__hash_table_get_entry_hash( ht, hash ).it->value \
     )
 
 // hash_table_get_entry_pointer, ht_get_ptr:
@@ -260,7 +272,7 @@ ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, hash_table_
         ht_entry_clear(ht), \
         ht_entry_key(ht) = (ptr), \
         ht_entry_hash(ht) = ht_hash(ht_entry_key(ht), len), \
-        ht_exists( ht, ht_entry_hash(ht) ) ? __hash_table_load_entry_reference(ht, ht_entry_hash(ht)) : NULL \
+        (ht)->it = ht_exists( ht, ht_entry_hash(ht) ) ? __hash_table_load_entry_reference(ht, ht_entry_hash(ht)) : NULL \
     )
 #define ht_get_ptr hash_table_get_entry_pointer
 
@@ -281,7 +293,7 @@ ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, hash_table_
         ht_entry_clear(ht), \
         ht_entry_key(ht) = (key), \
         ht_entry_hash(ht) = ht_hash(&ht_entry_key(ht), ht_key_sizeof(ht)), \
-        ht_exists( ht, ht_entry_hash(ht) ) ? __hash_table_load_entry_reference(ht, ht_entry_hash(ht)) : NULL \
+        (ht)->it = ht_exists( ht, ht_entry_hash(ht) ) ? __hash_table_load_entry_reference(ht, ht_entry_hash(ht)) : NULL \
     )
 
 #define ht_get_val hash_table_get_entry_value
@@ -300,7 +312,7 @@ ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, hash_table_
                 __hash_table_put_entry((char *) &ht_entry(ht), ht_entry_sizeof(ht), (ht_opaque_buckets *) &ht_buckets(ht)) \
             ) : OK \
         ), \
-        __hash_table_load_entry_reference(ht, ht_entry_hash(ht)) \
+        (ht)->it = __hash_table_load_entry_reference(ht, ht_entry_hash(ht)) \
     )
 #define ht_get_ptr_auto hash_table_get_entry_pointer_auto
 
@@ -328,7 +340,7 @@ ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, hash_table_
                 __hash_table_put_entry((char *) &ht_entry(ht), ht_entry_sizeof(ht), (ht_opaque_buckets *) &ht_buckets(ht)) \
             ) : 0 \
         ), \
-        __hash_table_load_entry_reference(ht, ht_entry_hash(ht)) \
+        (ht)->it = __hash_table_load_entry_reference(ht, ht_entry_hash(ht)) \
     )
 #define ht_get_val_auto hash_table_get_entry_value_auto
 
@@ -380,7 +392,7 @@ ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, hash_table_
                 ret.prev->next = ret.it->next; \
             } \
             if (ret.n == 0) { /* if the entry is a head */ \
-                vec_get(&ht_buckets(ht), ret.arr) = ret.it->next; /* it->next is the new head */ \
+                ptr_rtol(vec_get(&ht_buckets(ht), ret.arr)) = ret.it->next; /* it->next is the new head */ \
             } \
             sll_destroy(ret.it); \
         } \
@@ -416,7 +428,7 @@ ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, hash_table_
 // working in progress
 #define hash_table_for_each_entry(ht, bucket, head, it) \
 for ((bucket) = 0; (bucket) < vec_cap(&ht_buckets(ht)); (bucket)++) \
-    for ((it) = (head) = vector_get(&ht_buckets(ht), (bucket)); (it) != NULL; (it) = (it)->next)
+    for (ptr_rtol(it) = ptr_rtol(head) = vector_get(&ht_buckets(ht), (bucket)); (it) != NULL; ptr_rtol(it) = (it)->next)
 #define ht_for_each hash_table_for_each_entry
 
 // hash_table_clone, ht_clone:

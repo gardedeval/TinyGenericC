@@ -26,11 +26,11 @@
 #define vector_view_at vector_at
 #define vec_view_at vector_view_at
 
-#define vector_view_push(v, val) \
+#define vector_view_push(vv, val) \
     do { \
-        common_ensure(vec_valid(v)); \
-        vec_assert_boundary(vec_index(v) + 1); \
-        vec_mem(v)[vec_index(v)++] = (val); \
+        common_ensure(vec_valid(vv)); \
+        vec_assert_boundary(vec_index(vv) + 1); \
+        vec_mem(vv)[vec_index(vv)++] = (val); \
     } while(0)
 #define vec_view_push vector_view_push
 
@@ -43,13 +43,13 @@
 #define vector_view_bottom vector_bottom
 #define vec_view_bottom vector_view_bottom
 
-#define vector_view_enqueue(v, val) \
+#define vector_view_enqueue(vv, val) \
     do {\
-        common_ensure(vec_valid(v)); \
-        vec_assert_boundary(vec_index(v) + 1); \
-        common_memmove(vec_get_ref(v, 1), vec_get_ref(v, 0), vec_type_sizeof(v) * vec_index(v)); \
-        vec_index(v)++; \
-        vector_get(v, 0) = (val); \
+        common_ensure(vec_valid(vv)); \
+        vec_assert_boundary(vec_indexv(v) + 1); \
+        common_memmove(vec_get_ref(vv, 1), vec_get_ref(vv, 0), vec_type_sizeof(vv) * vec_index(vv)); \
+        vec_index(vv)++; \
+        vector_get(vv, 0) = (val); \
     } while(0)
 #define vec_view_enqueue vector_view_enqueue
 

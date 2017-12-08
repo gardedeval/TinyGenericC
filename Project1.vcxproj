@@ -144,10 +144,12 @@
     <ClInclude Include="include\common.h" />
     <ClInclude Include="include\expr.h" />
     <ClInclude Include="include\hash_table.h" />
+    <ClInclude Include="include\iden_concat.h" />
     <ClInclude Include="include\json.h" />
     <ClInclude Include="include\linked_list.h" />
     <ClInclude Include="include\mempool.h" />
     <ClInclude Include="include\ref_count.h" />
+    <ClInclude Include="include\static_assert.h" />
     <ClInclude Include="include\tagged_mem.h" />
     <ClInclude Include="include\type.h" />
     <ClInclude Include="include\vector.h" />

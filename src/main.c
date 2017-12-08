@@ -116,7 +116,7 @@ void test_singly_linked_list() {
     sll_push(one, sll_push(two, sll_push(three, sll_push(four, five))));
 
     {
-        sll_t(int) *it = one;
+        sll_t(int) *it = ptr_rtol(one);
 
         common_ensure(it->value == 1);
         it = it->next;
@@ -155,7 +155,9 @@ void test_hash_table() {
         }
 
         {
-            ht_entry_t(double, int) *it = ht_get_val(&ht, 45.0);
+            ht_entry_t(double, int) *it;
+            
+            ptr_rtol(it) = ht_get_val(&ht, 45.0);
 
             common_ensure(it != NULL);
             common_ensure(it->value == 45);
@@ -168,7 +170,6 @@ void test_hash_table_2() {
     int i;
     ht_t(const char *, int) ht;
     ht_entry_t(const char *, int) *it;
-    ht_link_entry_t(const char *, int) *it0;
     vec(char *) str;
     vec_make(&str);
 
@@ -196,25 +197,25 @@ void test_hash_table_2() {
         }
         
         {
-            it = ht_get_str(&ht, "abcd1");
+            ptr_rtol(it) = ht_get_str(&ht, "abcd1");
             common_ensure(it != NULL);
             common_ensure(it->value == 1);
         }
 
         {
-            it = ht_get_str(&ht, "test0");
+            ptr_rtol(it) = ht_get_str(&ht, "test0");
             common_ensure(it != NULL);
             common_ensure(it->value == 0);
         }
 
         {
-            it = ht_get_str(&ht, "hello world7");
+            ptr_rtol(it) = ht_get_str(&ht, "hello world7");
             common_ensure(it != NULL);
             common_ensure(it->value == 7);
         }
 
         {
-            it = ht_get_str_auto(&ht, "test1234");
+            ptr_rtol(it) = ht_get_str_auto(&ht, "test1234");
             common_ensure(it != NULL);
             common_ensure(it->value == 0);
             common_ensure(ht_get_str(&ht, "test1234") != NULL);

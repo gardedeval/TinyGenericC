@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "static_assert.h"
 
 #define VECTOR_VER "0.0.1"
 
@@ -75,6 +76,7 @@
 /* simple full struct shallow clone */
 #define vector_clone(dest, src) \
     do { \
+        STATIC_ASSERT(vec_type_sizeof(dest) == vec_type_sizeof(src), "underlying size unmatch"); \
         common_ensure_message(vec_type_sizeof(dest) == vec_type_sizeof(src), "underlying size unmatch"); \
         common_ensure((dest) != NULL && vec_valid(src)); \
         common_memcpy(dest, src, vec_sizeof(src)); \
@@ -195,6 +197,7 @@ size_t __vector_expand_to_nearest_2n(size_t n);
 
 #define vector_slice(v, dest, start, end) \
     do { \
+        STATIC_ASSERT(vec_type_sizeof(dest) == vec_type_sizeof(src), "underlying size unmatch"); \
         common_ensure_message(vec_type_sizeof(dest) == vec_type_sizeof(src), "underlying size unmatch"); \
         common_ensure(vec_valid(v) && (dest) != NULL); \
         common_ensure ((start) > 0 && (end) > 0); \

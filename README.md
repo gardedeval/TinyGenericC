@@ -6,17 +6,20 @@ Inspired by [rxi/map](https://github.com/rxi/map) and [rxi/vec](https://github.c
 # WARNING
 You are summoning the horrific nasal demons. Multiple nasal demons. You should never recall them unless you are steer-clear of knowing what you are doing. 
 
-Compile-time type checking is practically disabled here by the side effect of pointer rewiring. I'm planning to import static_assert but it didn't work out on MSVC.
+Compile-time type checking is virtually and practically disabled here by the side effect of pointer rewiring. 
+
+I'm planning to import static_assert but it didn't really worked out on MSVC, only the IDE will show the type error.
 
 Documents and comments are not completed. 
 
 THREAD-UNSAFE EVEN WITH LOCKS PLEASE DO NOT USE IT IN PRODUCTION.
 
+# Index
 Currently undergoing development:
 1. vector(T): Dynamic array. Translation-unit-free.
 2. vector_view(T): Like vector but using a static memory location. Translation-unit-free.
 3. linked_list(T) and singly_linked_list(T): (Type-unsafe) Linked List. Translation-unit-free.
-4. hash_table(K, V): Hash table using FNV-1a and separate chaining with list head cells
+4. hash_table(K, V): Hash table using FNV-1a and separate chaining with list head cells. Custom hash has to be done by user.
 5. binary_tree(T): Binary tree (WIP)
 6. ref_count(T): Manual reference counting (WIP)
 7. mempool: Memory pool (WIP)

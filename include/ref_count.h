@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "iden_concat.h"
 
 #define REFERENCE_COUNTING_VER "0.0.1"
 
@@ -37,7 +38,7 @@
     do { \
         common_ensure((rc) != NULL); \
         rc_count(rc) = 1; \
-        rc_free_fn(rc) = common_free; \
+        *((void (**)(void *)) &rc_free_fn(rc)) = common_free; \
         rc_ptr(rc) = common_calloc(1, sizeof(*rc_get_ptr(rc))); \
         common_ensure_message(rc_ptr(rc) != NULL, "Out of memory"); \
     } while(0)
@@ -72,9 +73,7 @@
 #define ref_count_decrement ref_count_inflate
 #define rc_dec ref_count_decrement
 
-#define ref_count_enter_gen3(T, count) T##count
-#define ref_count_enter_gen2(T, count) ref_count_enter_gen3(T, count)
-#define ref_count_enter_gen ref_count_enter_gen2(__ref_count_enter_, __LINE__)
+#define ref_count_enter_gen iden_concat_2(__ref_count_enter_, __LINE__)
 
 #define ref_count_enter(rc) \
     for (\
