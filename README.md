@@ -1,5 +1,5 @@
 # TinyGenericC
-Tiny C Libraries that exploits undefined behaviors to achieve generic programming. Requires C99 support.
+Tiny C libraries that exploit undefined behavior to achieve generic programming. Requires C99 support.
 
 Inspired by [rxi/map](https://github.com/rxi/map) and [rxi/vec](https://github.com/rxi/vec) and [attractivechaos/klib](https://github.com/attractivechaos/klib)
 
@@ -28,14 +28,14 @@ Currently undergoing development:
 A toy JSON library is also included here to demonstrate TinyGenericC. However the deserializer part is not started (I'm still learning parser sorry).
 
 # Note
-Unfortunately, this is not truly-generic programming. Instead, it's more like Java-ish type erasure that defined a certain bound on object/struct size beforehand, and the program is pretending to not writing beyond the memory by asserting the size in run-time. 
+Unfortunately, this is not true generic programming. Instead, it's more like Java-ish type erasure that defines a certain bound on object/struct size beforehand, and the program pretends not to write beyond the memory by asserting the size at run-time. 
 
-The sentinel objects to operate on the generic object (e.g. iterator, index) however, is user-defined, and so highly dangerous since type-aliasings are most likely or unintentionally violated. 
+The sentinel objects to operate on the generic object (e.g. iterator, index) however, are user-defined, and so highly dangerous since type-aliasings are easily or unintentionally violated. 
 
-Therefore, types are not retified and validated. You are responsible for correcting the types in case you shot yourself in the foot.
+Therefore, types are not reified and validated. You are responsible for correcting the types in case you shoot yourself in the foot.
 
 # TODO
 1. Implement mempool first to support a memory allocator (useful for MCUs)
 2. Rewrite all containers to utilize mempool
 3. Make vector_view able to use local buffer
-4. Fix the god-damn documentation!
+4. Fix the goddamn documentation!
