@@ -91,6 +91,8 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <CompileAs>CompileAsC</CompileAs>
+      <PreprocessorDefinitions>_MBCS;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
@@ -102,6 +104,8 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <CompileAs>CompileAsC</CompileAs>
+      <PreprocessorDefinitions>_MBCS;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
@@ -115,6 +119,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <CompileAs>CompileAsC</CompileAs>
+      <PreprocessorDefinitions>_MBCS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -129,6 +135,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <CompileAs>CompileAsC</CompileAs>
+      <PreprocessorDefinitions>_MBCS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -136,7 +144,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\generic.c" />
     <ClCompile Include="src\main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -148,8 +155,11 @@
     <ClInclude Include="include\json.h" />
     <ClInclude Include="include\linked_list.h" />
     <ClInclude Include="include\mempool.h" />
+    <ClInclude Include="include\platform_check.h" />
+    <ClInclude Include="include\platform_shim.h" />
     <ClInclude Include="include\ref_count.h" />
     <ClInclude Include="include\static_assert.h" />
+    <ClInclude Include="include\syntax_hack.h" />
     <ClInclude Include="include\tagged_mem.h" />
     <ClInclude Include="include\type.h" />
     <ClInclude Include="include\vector.h" />

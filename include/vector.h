@@ -133,17 +133,13 @@
 #define vector_at(v, n) *( common_ensure(vec_valid(v)), vec_assert_boundary(v, (size_t) (n)), &vec_get(v, n) )
 #define vec_at vector_at
 
-/* https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2 */
-size_t __vector_expand_to_nearest_2n(size_t n);
-#define vec_expand_to_2n __vector_expand_to_nearest_2n
-
 #define vector_at_with_expand(v, n) \
     *( \
         common_ensure( vec_valid(v) ), \
         common_ensure( (n) >= 0 ), \
         (n) >= vec_index(v) ? \
         ( \
-            vec_resize_unsafe(v, vec_expand_to_2n((n) + 1)), \
+            vec_resize_unsafe(v, size_expand_to_2n((n) + 1)), \
             vec_index(v) = (n) + 1 \
         ) : 0, \
         &vec_mem(v)[(n)] \
@@ -203,7 +199,7 @@ size_t __vector_expand_to_nearest_2n(size_t n);
         common_ensure ((start) > 0 && (end) > 0); \
         common_ensure ((start) < (end)); \
         common_ensure ((end) < vec_index(v) && (start) < vec_index(v)); \
-        size_t n = vec_expand_to_2n((end) - (start)); /* 2^n padded! */ \
+        size_t n = size_expand_to_2n((end) - (start)); /* 2^n padded! */ \
         size_t cb = ((end) - (start)) * vec_type_sizeof(v); \
         common_memset((v), 0, vec_sizeof(v)); \
         vec_index(dest) = 0; \

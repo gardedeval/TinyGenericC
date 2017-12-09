@@ -130,19 +130,23 @@ typedef struct singly_linked_list_opaque {
 
 #define singly_linked_list_push(l, e)\
     (\
-        ( sll_next(l) != NULL ? ( \
+        ( sll_next(l) != NULL && (e) != NULL ? ( \
             ptr_rtol(sll_next(e)) = sll_next(l) \
         ) : 0 ), ( ptr_rtol(sll_next(l)) = (e) ), (l)\
     )
 #define sll_push singly_linked_list_push
 
-#define singly_linked_list_remove_next(l) \
-    do { \
-        sll_opaque *_next = sll_next(l);\
-        if (_next != NULL) { \
-            sll_next(l) = sll_next(next); \
-        } \
-    } while(0)
+
+INLINE
+sll_opaque *singly_linked_list_remove_next(sll_opaque *l) {
+    sll_opaque *next = sll_next(l);
+    if (next != NULL) {
+        sll_next(l) = sll_next(next);
+    }
+    return next;
+}
+
+#define sll_remove_next singly_linked_list_remove_next
 
 #define singly_linked_list_for_each linked_list_for_each
 #define sll_for_each singly_linked_list_for_each
@@ -157,3 +161,29 @@ typedef struct singly_linked_list_opaque {
             if (_it == NULL) break; \
         } \
     } while(0)
+
+INLINE
+sll_opaque *__singly_linked_List_find_loop(sll_opaque *l) {
+    sll_opaque *tortoise = l;
+    sll_opaque *hare = l;
+
+    for (; hare != NULL;) {
+        hare = sll_next(hare);
+        if (hare == NULL) break;
+        hare = sll_next(hare);
+        tortoise = sll_next(tortoise);
+        if (hare == tortoise) {
+            // cycle is found: looking for the head of the loop 
+            for (tortoise = l; hare != tortoise; ) {
+                hare = sll_next(hare);
+                tortoise = sll_next(tortoise);
+            }
+            return hare;
+        }
+    }  
+
+    return NULL;
+}
+
+#define singly_linked_List_find_loop(l) __singly_linked_List_find_loop((sll_opaque *) (l))
+#define sll_find_loop singly_linked_List_find_loop

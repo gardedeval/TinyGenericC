@@ -4,31 +4,9 @@
 #error "C++ is not supported in this library"
 #endif
 
-#ifdef _MSC_VER
-#define MSVC
-#elif defined(__clang__)
-#define CLANG
-#elif defined(__GNUC__)
-#define GCC
-#endif
-
-#ifdef MSVC
-#define PACKME_BEGIN __pragma( pack(push, 1) )
-#define PACKME_END __pragma( pack(pop) )
-#elif defined(CLANG) || defined(GCC)
-#define PACKME_BEGIN 
-#define PACKME_END __attribute__((packed))
-#endif
-
-#ifndef common_assert
-#if defined(DEBUG) || defined(_DEBUG)
-#include <assert.h>
-#define common_assert assert
-#else
-#define common_assert(expr) ((void) 0)
-#endif
-#endif
-
+#include "platform_check.h"
+#include "platform_shim.h"
+#include "syntax_hack.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -47,6 +25,10 @@
 
 #ifndef common_memmove
 #define common_memmove memmove
+#endif
+
+#ifndef common_memcmp
+#define common_memcmp memcmp
 #endif
 
 #ifndef common_calloc
@@ -92,16 +74,19 @@
 #define common_abort abort
 #endif
 
-#if defined(DEBUG) || defined(_DEBUG)
-#define common_ensure_message(expr, msg) ( !(expr) ? common_fprintf(stderr, (msg "\n")), common_abort(0) : (void)0 )
+#if M_DEBUG_V == 1
+#define common_ensure_message(expr, msg) ( !(expr) ? common_fprintf(stderr, (msg "\n")), common_abort(), ((int) 0) : (int)1 )
 #else
-#define common_ensure_message(expr, msg) ( !(expr) ? common_abort() : (void)0 )
+#define common_ensure_message(expr, msg) ( !(expr) ? common_abort(), ((int) 0) : (int)1 )
 #endif
 
 #define common_ensure(expr) common_ensure_message(expr, "Conditional violation, program terminated")
-#define common_ensure_nomsg(expr) ( !(expr) ? common_abort() : (void) 0 )
+#define common_ensure_nomsg(expr) ( !(expr) ? common_abort() : (int) 1 )
 
-#define common_ptr_rv_to_lv(ptr) *((void **) &(ptr))
+#define common_ptr_rv_to_lv(ptr) *typecast(void **, &(ptr))
+
+#ifndef ptr_rtol
 #define ptr_rtol common_ptr_rv_to_lv
+#endif
 
 #endif

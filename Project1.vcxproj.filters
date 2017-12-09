@@ -18,9 +18,6 @@
     <ClCompile Include="src\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\generic.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\type.h">
@@ -63,6 +60,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\iden_concat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\platform_check.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\platform_shim.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\syntax_hack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

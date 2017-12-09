@@ -38,7 +38,7 @@
     do { \
         common_ensure((rc) != NULL); \
         rc_count(rc) = 1; \
-        *((void (**)(void *)) &rc_free_fn(rc)) = common_free; \
+        *typecast(void (**)(void *), &rc_free_fn(rc)) = common_free; \
         rc_ptr(rc) = common_calloc(1, sizeof(*rc_get_ptr(rc))); \
         common_ensure_message(rc_ptr(rc) != NULL, "Out of memory"); \
     } while(0)

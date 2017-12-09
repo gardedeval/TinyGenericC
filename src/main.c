@@ -127,13 +127,72 @@ void test_singly_linked_list() {
         common_ensure(it->value == 4);
         it = it->next;
         common_ensure(it->value == 5);
+        it = it->next;
+        common_ensure(it == NULL);
     }
 
     sll_destroy_all(one);
 }
 
+void test_singly_linked_list_2() {
+    sll_t(int) two, zero, six, three, one, *it; 
+    sll_make(&two) = 2, sll_make(&zero) = 0;
+    sll_make(&six) = 6, sll_make(&three) = 3;
+    sll_make(&one) = 1;
+
+    ptr_rtol(it) = sll_find_loop(&two);
+    common_ensure(it == NULL);
+
+    // 2 -> 0 -> 6 -> 3 -> 1 -> |X|
+    sll_push(&two, sll_push(&zero, sll_push(&six, sll_push(&three, &one))));
+
+    ptr_rtol(it) = &two;
+    common_ensure(it->value == 2);
+    it = it->next;
+    common_ensure(it->value == 0);
+    it = it->next;
+    common_ensure(it->value == 6);
+    it = it->next;
+    common_ensure(it->value == 3);
+    it = it->next;
+    common_ensure(it->value == 1);
+    it = it->next;
+    common_ensure(it == NULL);
+
+    ptr_rtol(it) = sll_find_loop(&two);
+    common_ensure(it == NULL);
+
+    // 2 -> 0 -> 6 -> 3 -> 1 -> 6 - > 3 -> 1 -> ...
+    // or
+    //           |--------------| 
+    //           V              |
+    // 2 -> 0 -> 6 -> 3 -> 1 -> |
+    sll_push(&one, &six);
+
+    ptr_rtol(it) = sll_find_loop(&two);
+    common_ensure(it != NULL);
+    common_ensure(it == &six);
+
+    ptr_rtol(it) = sll_find_loop(&zero);
+    common_ensure(it != NULL);
+    common_ensure(it == &six);
+
+    ptr_rtol(it) = sll_find_loop(&six);
+    common_ensure(it != NULL);
+    common_ensure(it == &six);
+
+    // 3 -> 1 -> 6 -> 3 -> 1 -> 6 -> ...
+    // or
+    // |--------------|
+    // V              |
+    // 3 -> 1 -> 6 -> |
+    ptr_rtol(it) = sll_find_loop(&three);
+    common_ensure(it != NULL);
+    common_ensure(it == &three);
+}
+
 void test_hash_table() {
-    int i;
+    size_t i;
     ht_t(double, int) ht;
 
     ht_make(&ht);
@@ -167,7 +226,7 @@ void test_hash_table() {
 }
 
 void test_hash_table_2() {
-    int i;
+    size_t i;
     ht_t(const char *, int) ht;
     ht_entry_t(const char *, int) *it;
     vec(char *) str;
@@ -223,6 +282,7 @@ void test_hash_table_2() {
 
         {
             ht_del_str(&ht, "test1234");
+
             common_ensure(ht_get_str(&ht, "test1234") == NULL);
         }
     }
@@ -242,7 +302,7 @@ void test_hash_table_3() {
     ht_put_val(&table, 1234, 5678); /* drop in some value */
     ht_put_val(&table, 12345, 1234);
     ht_put_val(&table, 1561, 1734);
-
+    
     common_ensure(ht_get_val(&table, 1234)->value == 5678);
     common_ensure(ht_get_val(&table, 12345)->value == 1234);
     common_ensure(ht_get_val(&table, 1561)->value == 1734);
@@ -268,6 +328,27 @@ void test_hash_table_3() {
 
     ht_destroy(&table); /* clean up the resources used */
     ht_destroy(&kv);
+}
+
+void test_hash_table_4() {
+    size_t i;
+    ht_t(double, int) ht, ht2;
+
+    ht_make(&ht);
+    {
+        for (i = 0; i < 1024; i++) {
+            ht_put_val(&ht, i, i);
+        }
+
+        ht_clone(&ht2, &ht);
+
+        for (i = 0; i < 1024; i++) {
+            common_ensure(ht_get_val(&ht2, i) != NULL);
+        }
+
+    }
+    ht_destroy(&ht);
+    ht_destroy(&ht2);
 }
 
 void test_json_serialize() {
@@ -311,7 +392,6 @@ void test_reference_counting() {
     rc_inflate(&i);
     rc_inflate(&i);
     rc_enter(&i) {
-        printf("%i\n", *rc_get(&i));
         common_ensure(rc_count(&i) == 4);
     }
     common_ensure(rc_count(&i) == 3);
@@ -347,15 +427,21 @@ void test_reference_counting_2() {
 int main(void) {
     test_vector();
     test_linked_list();
+    
     test_singly_linked_list();
+    test_singly_linked_list_2();
+
     test_hash_table();
     test_hash_table_2();
     test_hash_table_3();
+    test_hash_table_4();
     test_reference_counting();
     test_reference_counting_2();
 
     /*test_json_serialize();*/
+#ifdef MSVC
     printf("done\n");
     getchar();
+#endif
     return 0;
 }
