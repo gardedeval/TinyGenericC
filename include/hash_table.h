@@ -243,6 +243,7 @@ INLINE ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, ht_o
 #define hash_table_exists_value(ht, key) \
     ( \
         common_ensure(ht_valid(ht)), \
+        type_assert_by_size_expr(ht_key_sizeof(ht), sizeof((key))), \
         ht_entry_clear(ht), \
         ht_entry_key(ht) = (key), \
         ht_entry_hash(ht) = ht_hash(&ht_entry_key(ht), ht_key_sizeof(ht)), \
@@ -279,6 +280,8 @@ INLINE ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, ht_o
 #define hash_table_put_entry_value(ht, k, v) \
     ( \
         common_ensure(ht_valid(ht)), \
+        type_assert_by_size_expr(ht_key_sizeof(ht), sizeof((k))), \
+        type_assert_by_size_expr(ht_value_sizeof(ht), sizeof((v))), \
         ht_entry_key(ht) = (k), \
         ht_entry_value(ht) = (v), \
         ht_entry_hash(ht) = ht_hash(&ht_entry_key(ht), ht_key_sizeof(ht)), \
@@ -295,6 +298,7 @@ INLINE ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, ht_o
 #define hash_table_put_entry_pointer(ht, ptr, v, len) \
     ( \
         common_ensure(ht_valid(ht)), \
+        type_assert_by_size_expr(ht_value_sizeof(ht), sizeof((v))), \
         ht_entry_key(ht) = (ptr), \
         ht_entry_value(ht) = (v), \
         ht_entry_hash(ht) = ht_hash(ht_entry_key(ht), len), \
@@ -344,6 +348,7 @@ INLINE ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, ht_o
 #define hash_table_get_entry_value(ht, key) \
     ( \
         common_ensure(ht_valid(ht)), \
+        type_assert_by_size_expr(ht_key_sizeof(ht), sizeof((key))), \
         ptr_rtol(ht_iter(ht)) = (ht_exists_val(ht, key) ? ( \
             __hash_table_get_entry((char *) &ht_entry(ht), ht_entry_sizeof(ht), (ht_opaque_buckets *) &ht_buckets(ht)).it->value \
         ) : NULL), \
@@ -386,6 +391,7 @@ INLINE ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, ht_o
 #define hash_table_get_entry_value_auto(ht, key) \
     ( \
         common_ensure(ht_valid(ht)), \
+        type_assert_by_size_expr(ht_key_sizeof(ht), sizeof((key))), \
         (!ht_exists_val(ht, key) ? ( \
             __hash_table_put_entry(&ht_entry(ht), ht_entry_sizeof(ht), &ht_buckets(ht)) \
         ): OK), \
@@ -441,6 +447,7 @@ INLINE ht_ret_code __hash_table_put_entry(char *entryMem, size_t entrySize, ht_o
 #define hash_table_delete_entry_value(ht, k) \
     do { \
         common_ensure(ht_valid(ht)); \
+        type_assert_by_size(ht_key_sizeof(ht), sizeof((k))); \
         ht_entry_key(ht) = (k); \
         ht_entry_hash(ht) = ht_hash(&ht_entry_key(ht), ht_key_sizeof(ht)); \
         ht_entry_hash_backup(ht) = ht_hash_backup(&ht_entry_key(ht), ht_key_sizeof(ht)); \
@@ -470,7 +477,8 @@ for ((bucket) = 0; (bucket) < vec_cap(&ht_buckets(ht)); (bucket)++) \
     do { \
         sll_opaque *it, *head; \
         size_t i; \
-        common_ensure(ht_entry_sizeof(dest) == ht_entry_sizeof(src)); /* weakly ensure the fields are compatible */ \
+        type_assert_by_size(ht_key_sizeof(dest), ht_key_sizeof(src)); \
+        type_assert_by_size(ht_value_sizeof(dest), ht_value_sizeof(src)); \
         common_ensure ((dest) != NULL && ht_valid(src)); \
         vec_clone(&ht_buckets(dest), &ht_buckets(src)); /* preserve the same layout of buckets */ \
         vec_clear_mem(&ht_buckets(dest)); /* but emptied the heads */ \

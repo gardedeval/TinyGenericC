@@ -16,3 +16,5 @@
 #define STATIC_ASSERT(e,m) \
     ;enum { ASSERT_CONCAT(assert_line_, __LINE__) = 1/(int)(!!(e)) }
 #endif
+
+#define STATIC_ASSERT_EXPR(e,m) (1/(int)(!!(e)))

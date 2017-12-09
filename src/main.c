@@ -6,9 +6,10 @@
 #include <linked_list.h>
 #include <math.h>
 
-#include "hash_table.h"
-#include "json.h"
-#include "ref_count.h"
+#include <vector_view.h>
+#include <hash_table.h>
+#include <json.h>
+#include <ref_count.h>
 
 void test_vector() {
     size_t i;
@@ -57,6 +58,43 @@ void test_vector() {
     }
 
     vec_destroy(&v);
+}
+
+void test_vector_view() {
+    char buf[1024];
+
+    vec_view(char) view;
+    vec_view_make_arr(&view, buf, 0);
+
+    vec_view_push(&view, 'h');
+    vec_view_push(&view, 'e');
+    vec_view_push(&view, 'l');
+    vec_view_push(&view, 'l');
+    vec_view_push(&view, 'o');
+    vec_view_push(&view, '\0');
+
+    common_ensure(common_memcmp("hello", view.mem, 5) == 0);
+
+    vec_view_push(&view, 'w');
+    vec_view_push(&view, 'o');
+    vec_view_push(&view, 'r');
+    vec_view_push(&view, 'l');
+    vec_view_push(&view, 'd');
+
+    common_ensure(common_memcmp("hello\0world", view.mem, 11) == 0);
+}
+
+void test_vector_view_1() {
+    char buf[1024];
+    int buf2[16];
+
+    vec_view(char) bufView;
+    vec_view(int) buf2View;
+
+    vec_view_make_arr(&bufView, buf, 0);
+    vec_view_make_arr(&buf2View, buf2, 0);
+
+
 }
 
 void test_linked_list() {
@@ -198,13 +236,12 @@ void test_hash_table() {
     ht_make(&ht);
     {
         for (i = 0; i < 1024; i++) {
-            ht_put_val(&ht, i, i);
+            ht_put_val(&ht, (double)i, (int)i);
         }
 
         for (i = 0; i < 1024; i++) {
-            common_ensure(ht_get_val(&ht, i) != NULL);
+            common_ensure(ht_get_val(&ht, (double)i) != NULL);
         }
-
 
         {
             ht_link_entry_t(double, int) *it0, *head;
@@ -250,9 +287,9 @@ void test_hash_table_2() {
             strcat(abcd, buf);
             strcat(hw, buf);
     
-            ht_put_str(&ht, test, i);
-            ht_put_str(&ht, abcd, i);
-            ht_put_str(&ht, hw, i);
+            ht_put_str(&ht, test, (int)i);
+            ht_put_str(&ht, abcd, (int)i);
+            ht_put_str(&ht, hw, (int)i);
         }
         
         {
@@ -310,7 +347,7 @@ void test_hash_table_3() {
     ht_del_val(&table, 12345);
     common_ensure(ht_get_val(&table, 12345) == NULL); /* NULL */
 
-    ht_put_str(&kv, "the answer to life, the universe and everything", 42); /* add a string-int pair */
+    ht_put_str(&kv, "the answer to life, the universe and everything", (double)42); /* add a string-int pair */
     ht_put_str(&kv, "e", 2.71828);
     ht_put_str(&kv, "pi", 3.14159);
     ht_put_str(&kv, "phi", 1.61803);
@@ -337,13 +374,13 @@ void test_hash_table_4() {
     ht_make(&ht);
     {
         for (i = 0; i < 1024; i++) {
-            ht_put_val(&ht, i, i);
+            ht_put_val(&ht, (double)i, (int)i);
         }
 
         ht_clone(&ht2, &ht);
 
         for (i = 0; i < 1024; i++) {
-            common_ensure(ht_get_val(&ht2, i) != NULL);
+            common_ensure(ht_get_val(&ht2, (double)i) != NULL);
         }
 
     }
@@ -426,6 +463,9 @@ void test_reference_counting_2() {
 
 int main(void) {
     test_vector();
+    test_vector_view();
+    test_vector_view_1();
+
     test_linked_list();
     
     test_singly_linked_list();
@@ -435,6 +475,7 @@ int main(void) {
     test_hash_table_2();
     test_hash_table_3();
     test_hash_table_4();
+
     test_reference_counting();
     test_reference_counting_2();
 

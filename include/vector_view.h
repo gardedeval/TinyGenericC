@@ -9,6 +9,7 @@
 
 #define vector_view_make(vv, mem, idx, cap) \
     do {\
+        type_assert_by_size(vec_type_sizeof(vv), array_type_sizeof(buf)); \
         common_memset((vv), 0, vec_sizeof(vv)); \
         vec_mem(vv) = (mem);\
         vec_index(vv) = (idx);\
@@ -16,6 +17,17 @@
     } while(0)
 
 #define vec_view_make vector_view_make
+
+#define vector_view_make_array(vv, buf, idx) \
+    do {\
+        type_assert_by_size(vec_type_sizeof(vv), array_type_sizeof(buf)); \
+        common_memset((vv), 0, vec_sizeof(vv)); \
+        vec_mem(vv) = (buf);\
+        vec_index(vv) = (idx);\
+        vec_cap(vv) = sizeof((buf));\
+    } while(0)
+
+#define vec_view_make_arr vector_view_make_array
 
 #define vector_view_get vector_get
 #define vec_view_get vector_view_get
@@ -29,7 +41,7 @@
 #define vector_view_push(vv, val) \
     do { \
         common_ensure(vec_valid(vv)); \
-        vec_assert_boundary(vec_index(vv) + 1); \
+        common_ensure(vec_index(vv) < vec_cap(vv)); \
         vec_mem(vv)[vec_index(vv)++] = (val); \
     } while(0)
 #define vec_view_push vector_view_push

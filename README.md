@@ -30,6 +30,7 @@ Currently undergoing development:
 A toy JSON library is also included here to demonstrate TinyGenericC. However the deserializer part is not started (I'm still learning parser sorry).
 
 # Version history
+* 0.0.4: Incorporated static_assert to accommodate compile-time type matching hint 
 * 0.0.3a: Added a loop detection algorithm for singly linked list (Floyd's cycle-finding)
 * 0.0.3: Reworked on the algorithm of hash_table (Now using a self-invented and flawed twin-hash implementation)
 * 0.0.2: Rewriting all the external linkage functions into C99-inline form

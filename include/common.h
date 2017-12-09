@@ -7,6 +7,7 @@
 #include "platform_check.h"
 #include "platform_shim.h"
 #include "syntax_hack.h"
+#include "static_assert.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -47,6 +48,10 @@
 #define common_free free
 #endif
 
+#ifndef common_strcmp
+#define common_strcmp strcmp
+#endif
+
 #ifndef common_strlen
 #define common_strlen strlen
 #endif
@@ -75,7 +80,7 @@
 #endif
 
 #if M_DEBUG_V == 1
-#define common_ensure_message(expr, msg) ( !(expr) ? common_fprintf(stderr, (msg "\n")), common_abort(), ((int) 0) : (int)1 )
+#define common_ensure_message(expr, msg) ( !(expr) ? (common_fprintf(stderr, (msg "\n")), common_abort(), 0) : 1 )
 #else
 #define common_ensure_message(expr, msg) ( !(expr) ? common_abort(), ((int) 0) : (int)1 )
 #endif
@@ -87,6 +92,11 @@
 
 #ifndef ptr_rtol
 #define ptr_rtol common_ptr_rv_to_lv
+#endif
+
+#ifndef type_assert_by_size
+#define type_assert_by_size(a, b) STATIC_ASSERT((a) == (b), "underlying size unmatch")
+#define type_assert_by_size_expr(a, b) STATIC_ASSERT_EXPR((a) == (b), "underlying size unmatch")
 #endif
 
 #endif
