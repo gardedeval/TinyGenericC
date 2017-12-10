@@ -38,6 +38,9 @@
 #define vector_view_at vector_at
 #define vec_view_at vector_view_at
 
+#define vector_view_empty vector_empty 
+#define vec_view_empty vector_view_empty
+
 #define vector_view_push(vv, val) \
     do { \
         common_ensure(vec_valid(vv)); \

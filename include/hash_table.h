@@ -477,8 +477,8 @@ for ((bucket) = 0; (bucket) < vec_cap(&ht_buckets(ht)); (bucket)++) \
     do { \
         sll_opaque *it, *head; \
         size_t i; \
-        type_assert_by_size(ht_key_sizeof(dest), ht_key_sizeof(src)); \
-        type_assert_by_size(ht_value_sizeof(dest), ht_value_sizeof(src)); \
+        type_assert_by_size_expr(ht_key_sizeof(dest), ht_key_sizeof(src)); \
+        type_assert_by_size_expr(ht_value_sizeof(dest), ht_value_sizeof(src)); \
         common_ensure ((dest) != NULL && ht_valid(src)); \
         vec_clone(&ht_buckets(dest), &ht_buckets(src)); /* preserve the same layout of buckets */ \
         vec_clear_mem(&ht_buckets(dest)); /* but emptied the heads */ \

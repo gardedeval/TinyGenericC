@@ -158,6 +158,7 @@
     <ClInclude Include="include\platform_check.h" />
     <ClInclude Include="include\platform_shim.h" />
     <ClInclude Include="include\ref_count.h" />
+    <ClInclude Include="include\stack.h" />
     <ClInclude Include="include\static_assert.h" />
     <ClInclude Include="include\syntax_hack.h" />
     <ClInclude Include="include\tagged_mem.h" />

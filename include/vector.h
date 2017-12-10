@@ -39,6 +39,9 @@
 #define vector_used_memory(v) ( vec_type_sizeof(v) * vec_cap(v) )
 #define vec_used_mem vector_used_memory
 
+#define vector_empty(v) ( vec_index(v) < 1 )
+#define vec_empty vector_empty
+
 #define vector_assert_underflow(v) ( common_ensure((v) != NULL), common_ensure( vec_cap(v) >= 0 ) )
 #define vec_assert_underflow vector_assert_underflow
 
@@ -88,13 +91,13 @@
 
 #define vector_resize_safe(v, n) \
     do { \
-        common_ensure(vec_valid(v) && n > vec_cap(v)); \
-        vec_tmp(v, size_t *) = common_realloc(vec_mem(v), vec_type_sizeof(v) * (n)); \
-        common_ensure_message(vec_tmp(v, size_t *) != NULL, "Out of memory"); \
+        size_t _n = (n); \
         size_t old_cap = vec_cap(v);\
-        common_memset(vec_tmp(v, size_t *) + old_cap, 0, vec_type_sizeof(v) * (n - old_cap));\
-        vec_cap(v) = (n); \
-        vec_mem(v) = vec_tmp(v, void *); \
+        common_ensure(vec_valid(v)); \
+        vec_mem(v) = common_realloc(vec_mem(v), vec_type_sizeof(v) * _n); \
+        common_ensure_message(vec_mem(v) != NULL, "Out of memory"); \
+        common_memset(vec_mem(v) + old_cap, 0, vec_type_sizeof(v) * (_n - old_cap));\
+        vec_cap(v) = _n; \
     } while(0)
 #define vec_resize_safe vector_resize_safe
 
@@ -146,7 +149,7 @@
     )
 #define vec_at_expand vector_at_with_expand
 
-#define vector_top(v) ( common_ensure(vec_valid(v)), vec_get(v, vec_index(v) > 0 ? vec_index(v) : 0) )
+#define vector_top(v) ( common_ensure(vec_valid(v)), vec_get(v, vec_index(v) > 0 ? (vec_index(v) - 1) : 0) )
 #define vec_top vector_top
 
 #define vector_bottom(v) ( common_ensure(vec_valid(v)), vec_get(v, 0) )

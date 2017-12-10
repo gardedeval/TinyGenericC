@@ -11,6 +11,8 @@
 #include <json.h>
 #include <ref_count.h>
 
+#include <stack.h>
+
 void test_vector() {
     size_t i;
     vec(float) v;
@@ -94,8 +96,74 @@ void test_vector_view_1() {
     vec_view_make_arr(&bufView, buf, 0);
     vec_view_make_arr(&buf2View, buf2, 0);
 
-
+    // TODO...
 }
+
+void test_stack_0() {
+    stk(char) s;
+    stk_make(&s);
+    
+    for (size_t i = 0; i < 16; i++) {
+        stk_push(&s, i);
+    }
+
+    common_ensure(stk_cap(&s) == 16);
+    stk_push(&s, 16);
+    common_ensure(stk_cap(&s) == 32);
+
+    common_ensure(stk_top(&s) == stk_pop(&s));
+
+    stk_destroy(&s);
+}
+
+void test_stack() {
+    const char precedences[] = {
+        ['+'] = 1,
+        ['-'] = 1,
+        ['*'] = 2,
+        ['/'] = 2,
+    };
+
+    vec_view(char) input;
+    const char *src = "7 + ((1 + 2) * 3 / (4 - 1))";
+    vec_view_make_arr(&input, src, strlen(src));
+
+    stk(char) opStack, tokens;
+
+    
+
+    stk_make(&opStack);
+    stk_make(&tokens);
+    {
+        size_t i;
+        char *ref;
+        vec_view_for_each(&input, i, ref) {
+            if (*ref >= '0' && *ref <= '9') stk_push(&tokens, *ref);
+            else if (precedences[*ref] > 0) {
+                while (stk_idx(&opStack) > 0 && precedences[stk_top(&opStack)] > precedences[*ref] && stk_top(&opStack) != '(') {
+                    stk_push(&tokens, stk_pop(&opStack));
+                }
+                stk_push(&opStack, *ref);
+            } else if (*ref == '(') stk_push(&opStack, *ref);
+            else if (*ref == ')') {
+                while (stk_idx(&opStack) > 0) {
+                    const char op = stk_pop(&opStack);
+                    if (op != '(') stk_push(&tokens, op);
+                    else break;
+                }
+            }
+        }
+
+        while (stk_idx(&opStack) > 0) {
+            stk_push(&tokens, stk_pop(&opStack));
+        }
+
+        common_ensure(common_strcmp(stk_mem(&tokens), "712+341-/*+") == 0);
+    }
+    stk_destroy(&opStack);
+    stk_destroy(&tokens);
+}
+
 
 void test_linked_list() {
     typedef ll_t(int) int_ll;
@@ -465,6 +533,9 @@ int main(void) {
     test_vector();
     test_vector_view();
     test_vector_view_1();
+
+    test_stack_0();
+    test_stack();
 
     test_linked_list();
     
